@@ -128,6 +128,16 @@ export default async function ProductosPage() {
             />
           </div>
 
+           <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1">Stock Minimo</label>
+            <input
+              type="number"
+              name="minStock"
+              defaultValue={0}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1">Modelo (Opcional)</label>
             <input
@@ -148,7 +158,7 @@ export default async function ProductosPage() {
             />
           </div>
 
-          <div className="md:col-span-2 flex items-end">
+          <div className="md:col-span-6 flex items-end">
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-xl transition-colors text-sm"
