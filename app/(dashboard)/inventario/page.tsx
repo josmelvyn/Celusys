@@ -1,26 +1,40 @@
 import { prisma } from '@/app/lib/prisma'
 import { createInventoryMovementAction } from '@/app/lib/inventario/actions/inventory'
 import { Boxes, ArrowUpRight, ArrowDownLeft, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function InventarioPage() {
+const PAGE_SIZE = 10
+
+export default async function InventarioPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   const handleInventoryMovementSubmit = async (formData: FormData) => {
     'use server'
     await createInventoryMovementAction(formData)
   }
 
-  const [movements, products] = await Promise.all([
+  const { page } = await searchParams
+  const currentPage = Math.max(1, Number(page) || 1)
+
+  const [movements, totalMovements, products] = await Promise.all([
     prisma.inventoryMovement.findMany({
       include: {
         product: true,
         user: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
+    prisma.inventoryMovement.count(),
     prisma.product.findMany({ where: { active: true }, orderBy: { name: 'asc' } }),
   ])
+
+  const totalPages = Math.max(1, Math.ceil(totalMovements / PAGE_SIZE))
 
   return (
     <div className="space-y-6">
@@ -139,6 +153,36 @@ export default async function InventarioPage() {
             ))}
           </tbody>
         </table>
+
+        <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-800 text-sm text-slate-400">
+          <span>
+            Página {currentPage} de {totalPages} ({totalMovements} movimientos)
+          </span>
+          <div className="flex gap-2">
+            <Link
+              href={`/inventario?page=${currentPage - 1}`}
+              aria-disabled={currentPage <= 1}
+              className={`px-3 py-1.5 rounded-lg border border-slate-800 ${
+                currentPage <= 1
+                  ? 'pointer-events-none opacity-40'
+                  : 'hover:bg-slate-800/60 text-white'
+              }`}
+            >
+              Anterior
+            </Link>
+            <Link
+              href={`/inventario?page=${currentPage + 1}`}
+              aria-disabled={currentPage >= totalPages}
+              className={`px-3 py-1.5 rounded-lg border border-slate-800 ${
+                currentPage >= totalPages
+                  ? 'pointer-events-none opacity-40'
+                  : 'hover:bg-slate-800/60 text-white'
+              }`}
+            >
+              Siguiente
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )

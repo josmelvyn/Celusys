@@ -5,31 +5,45 @@ import { Users, UserPlus, Eye, Search } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
+const PAGE_SIZE = 10
+
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>
+  searchParams: Promise<{ page?: string; q?: string }>
 }) {
-  const query = (await searchParams).q || ''
+  const params = await searchParams
+  const query = params.q || ''
+  const currentPage = Math.max(1, Number(params.page) || 1)
 
-  const customers = await prisma.customer.findMany({
-    where: query
-      ? {
-          OR: [
-            { firstName: { contains: query, mode: 'insensitive' } },
-            { lastName: { contains: query, mode: 'insensitive' } },
-            { phone: { contains: query, mode: 'insensitive' } },
-            { email: { contains: query, mode: 'insensitive' } },
-          ],
-        }
-      : undefined,
-    include: {
-      _count: {
-        select: { sales: true, repairs: true },
+  const where = query
+    ? {
+        OR: [
+          { firstName: { contains: query, mode: 'insensitive' as const } },
+          { lastName: { contains: query, mode: 'insensitive' as const } },
+          { phone: { contains: query, mode: 'insensitive' as const } },
+          { email: { contains: query, mode: 'insensitive' as const } },
+        ],
+      }
+    : undefined
+
+  const [customers, totalCustomers] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      include: {
+        _count: {
+          select: { sales: true, repairs: true },
+        },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+      orderBy: { createdAt: 'desc' },
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.customer.count({ where }),
+  ])
+
+  const totalPages = Math.max(1, Math.ceil(totalCustomers / PAGE_SIZE))
+  const queryParam = query ? `&q=${encodeURIComponent(query)}` : ''
 
   return (
     <div className="space-y-6">
@@ -185,6 +199,36 @@ export default async function ClientesPage({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-800 text-sm text-slate-400">
+            <span>
+              Página {currentPage} de {totalPages} ({totalCustomers} clientes)
+            </span>
+            <div className="flex gap-2">
+              <Link
+                href={`/clientes?page=${currentPage - 1}${queryParam}`}
+                aria-disabled={currentPage <= 1}
+                className={`px-3 py-1.5 rounded-lg border border-slate-800 ${
+                  currentPage <= 1
+                    ? 'pointer-events-none opacity-40'
+                    : 'hover:bg-slate-800/60 text-white'
+                }`}
+              >
+                Anterior
+              </Link>
+              <Link
+                href={`/clientes?page=${currentPage + 1}${queryParam}`}
+                aria-disabled={currentPage >= totalPages}
+                className={`px-3 py-1.5 rounded-lg border border-slate-800 ${
+                  currentPage >= totalPages
+                    ? 'pointer-events-none opacity-40'
+                    : 'hover:bg-slate-800/60 text-white'
+                }`}
+              >
+                Siguiente
+              </Link>
+            </div>
           </div>
         </div>
       </div>
