@@ -34,17 +34,16 @@ export default function VentasForm({ customers, products, userId }: { customers:
         const product = products.find(p => p.id === selectedProduct)
         if (!product || quantity <= 0) return
 
-        // Calculate current quantity of this product in the cart
         const currentCartQuantity = items
             .filter(item => item.productId === product.id)
             .reduce((sum, item) => sum + item.quantity, 0)
 
-        // Check if adding more exceeds stock
-        if (currentCartQuantity + quantity > product.stock) {
+        if (currentCartQuantity + quantity > product.stock){
             alert(`No hay suficiente stock. Disponible: ${product.stock}, En carrito: ${currentCartQuantity}`)
             return
         }
-
+        
+    
         setItems([...items, {
             productId: product.id,
             productName: product.name,
@@ -89,7 +88,7 @@ export default function VentasForm({ customers, products, userId }: { customers:
                     <select onChange={(e) => setSelectedProduct(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white">
                         {products.map(p => <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>)}
                     </select>
-                    <input type="number" disabled={quantity === 0 }value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} min="1" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white" />
+                    <input type="number" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value))} min="1" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white" />
                     <button type="button" onClick={addItem} className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 py-2 flex items-center justify-center gap-2">
                         <Plus className="w-4 h-4" /> Agregar
                     </button>

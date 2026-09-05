@@ -10,6 +10,13 @@
 !.yarn/releases
 !.yarn/versions
 
+# carpeta que no uso
+/.agents/
+/.claude/
+/.windsurf/
+CLAUDE.md
+AGENTS.md
+
 # testing
 /coverage
 
