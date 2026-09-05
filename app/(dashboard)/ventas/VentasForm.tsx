@@ -21,6 +21,7 @@ interface SaleItem {
     productId: string;
     productName: string;
     quantity: number;
+    discount: number;
     unitPrice: number;
     subtotal: number;
 }
@@ -48,6 +49,7 @@ export default function VentasForm({ customers, products, userId }: { customers:
             productId: product.id,
             productName: product.name,
             quantity: quantity,
+            discount: 0,
             unitPrice: product.salePrice,
             subtotal: product.salePrice * quantity
         }])
